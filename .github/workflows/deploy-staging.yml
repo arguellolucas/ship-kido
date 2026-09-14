@@ -1,0 +1,75 @@
+name: Deploy Staging Environment
+
+on:
+  push:
+    branches:
+      - staging
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+permissions:
+  contents: read
+  id-token: write # Required if using Google Cloud Run with Workload Identity Federation
+
+jobs:
+  # 1. Gate: Verify tests pass before any deployment
+  test:
+    name: Run CI Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint and Unit Tests
+        run: |
+          npm run lint
+          npm test
+
+  # 2. Deploy to Staging Target
+  deploy:
+    name: Deploy to Staging
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: ${{ steps.deploy_step.outputs.url || steps.webhook_deploy.outputs.url || 'https://staging.ship-kido.ai' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Option A: Deploy via Deploy Hook (Render.com / Railway / Koyeb)
+      # Fastest setup: paste your staging service deploy webhook into GitHub Secret: STAGING_DEPLOY_HOOK_URL
+      - name: Trigger Deploy via Webhook (Render / Railway / Webhook)
+        id: webhook_deploy
+        if: env.STAGING_DEPLOY_HOOK_URL != ''
+        env:
+          STAGING_DEPLOY_HOOK_URL: ${{ secrets.STAGING_DEPLOY_HOOK_URL }}
+        run: |
+          echo "Triggering staging deployment webhook..."
+          curl -X POST -f "$STAGING_DEPLOY_HOOK_URL"
+          echo "Deployment triggered successfully."
+
+      # Option B: Build & Deploy to Google Cloud Run (Alternative)
+      # Uncomment if hosting staging on Google Cloud Run:
+      # - name: Authenticate to Google Cloud
+      #   uses: google-github-actions/auth@v2
+      #   with:
+      #     credentials_json: ${{ secrets.GCP_SA_KEY }}
+      #
+      # - name: Deploy to Cloud Run
+      #   id: deploy_step
+      #   uses: google-github-actions/deploy-cloudrun@v2
+      #   with:
+      #     service: ship-kido-staging
+      #     region: us-central1
+      #     source: ./
+      #     flags: '--port=3000 --allow-unauthenticated'
