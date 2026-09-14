@@ -43,7 +43,7 @@ export const AikidoIntegrationGuideModal: React.FC<GuideModalProps> = ({ isOpen,
             <div className="space-y-1.5 flex-1">
               <h3 className="font-bold text-sm text-zinc-900">Export or Push This Repository to GitHub/GitLab</h3>
               <p className="text-zinc-600">
-                In AI Studio's top settings menu, select <strong>Export to GitHub</strong> (or download as ZIP and push to your git remote).
+                In AI Studio's top settings menu, select <strong>Export to GitHub</strong> (or download as ZIP and push to your git remote). Ensure <code>package-lock.json</code> is committed for CI caching and Aikido SCA scans.
               </p>
               <div className="bg-zinc-950 text-emerald-300 p-2.5 rounded-xl font-mono text-[11px] overflow-x-auto">
                 <code>git init && git add . && git commit -m "feat: initial test lab"</code>
