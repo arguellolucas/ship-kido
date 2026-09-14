@@ -1,0 +1,25 @@
+default:
+  image: node:20-alpine
+
+stages:
+  - test
+
+variables:
+  CI: "true"
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .npm/
+
+test_suite:
+  stage: test
+  before_script:
+    - npm ci --cache .npm --prefer-offline || npm install
+  script:
+    - npm run lint
+    - npm test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_REF_NAME =~ /^aikido\/.*/

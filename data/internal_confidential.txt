@@ -1,0 +1,6 @@
+[CONFIDENTIAL SERVER FILE]
+This file is placed OUTSIDE the /data/invoices directory.
+If path traversal (e.g. ?file=../internal_confidential.txt) succeeds in a vulnerable app,
+an attacker reads this sensitive configuration or system secret.
+Aikido AutoFix automatically remedies this vulnerability by wrapping path resolution with
+path.resolve() and verifying it stays within the target directory boundary.

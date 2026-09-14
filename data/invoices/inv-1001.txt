@@ -1,0 +1,9 @@
+INVOICE #INV-1001
+Date: 2026-09-12
+Customer: DevSecOps Engineering Lead
+Status: PAID
+Items:
+- Aikido AutoShip Enterprise License (x1) - $499.00
+- Priority AutoFix AI Remediation Pack (x1) - $150.00
+Total: $649.00
+Thank you for your business!

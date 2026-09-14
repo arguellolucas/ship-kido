@@ -1,0 +1,9 @@
+INVOICE #INV-1002
+Date: 2026-09-13
+Customer: Acme Cloud Architecture
+Status: PAID
+Items:
+- CI/CD Security Gate Pipeline Integration (x1) - $280.00
+- Developer Security Training Lab - $120.00
+Total: $400.00
+Thank you for your business!

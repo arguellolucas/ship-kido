@@ -1,0 +1,6 @@
+{
+  "name": "Aikido AutoShip & AutoFix Lab",
+  "description": "Interactive security playground and store application tailored to test Aikido AutoFix SAST remediations, SCA dependency scanning, and AutoShip CI auto-merge workflows.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

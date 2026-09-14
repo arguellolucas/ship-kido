@@ -1,0 +1,8 @@
+INVOICE #INV-1003
+Date: 2026-09-14
+Customer: FinTech Compliance Officer
+Status: PENDING
+Items:
+- Automated Dependency CVE Scan & AutoShip Patch (x2) - $350.00
+Total: $350.00
+Thank you for your business!
