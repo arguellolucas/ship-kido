@@ -179,6 +179,60 @@ AIKIDO_TEST_API_TOKEN="your_key_here"`,
     testCases: [
       { label: 'Inspect SCA Dependencies', value: 'scan', isMalicious: false }
     ]
+  },
+  {
+    id: 'case-critical-sca',
+    title: 'Critical Prototype Pollution in Dependency (minimist)',
+    category: 'SCA',
+    severity: 'CRITICAL',
+    cwe: 'CWE-1321: Improperly Controlled Modification of Dynamically Determined Object Attributes',
+    scannerType: 'Dependency (SCA)',
+    description: 'The pinned dependency minimist (version 1.2.5) contains a Critical CVSS 9.8 vulnerability (CVE-2021-44906 / GHSA-xvch-5gv4-984h) allowing attackers to inject properties onto Object.prototype via __proto__ parameters.',
+    impact: 'Attackers can bypass security checks, alter application logic, or cause Denial of Service across the entire Node.js runtime process.',
+    vulnerableSnippet: `// ❌ Vulnerable (package.json & package-lock.json)
+"dependencies": {
+  "minimist": "1.2.5",      // Critical CVSS 9.8 (CVE-2021-44906)
+  "jsonwebtoken": "8.5.1"   // High/Critical (CVE-2022-23529)
+}`,
+    autoFixSnippet: `// ✅ Aikido AutoFix / AutoShip Remediation
+"dependencies": {
+  "minimist": "^1.2.8",     // Patched version cleanly merged by AutoShip
+  "jsonwebtoken": "^9.0.2"
+}`,
+    autoFixExplanation: 'Aikido SCA scans lockfiles on every commit, flags the Critical CVE, and generates an automated non-breaking dependency bump PR that AutoShip merges once CI passes.',
+    endpoint: '/api/security/test/secret-check',
+    defaultTestValue: 'scan',
+    testCases: [
+      { label: 'Inspect SCA Dependencies', value: 'scan', isMalicious: false }
+    ]
+  },
+  {
+    id: 'case-command-injection',
+    title: 'OS Command Injection in Network Diagnostic Handler',
+    category: 'SAST',
+    severity: 'CRITICAL',
+    cwe: 'CWE-78: Improper Neutralization of Special Elements used in an OS Command',
+    scannerType: 'Code (SAST)',
+    description: 'User-provided host parameter is passed directly into a shell execution string inside child_process.exec() without escaping or argument binding.',
+    impact: 'Attackers can append shell metacharacters (; && || | ` $) to execute arbitrary operating system commands with server privileges.',
+    vulnerableSnippet: `// ❌ CRITICAL SAST Finding (server/vulnerabilities.ts)
+const cmd = \`echo "Ping check: \${req.query.host}"\`;
+exec(cmd, (err, stdout) => {
+  res.send(stdout);
+});`,
+    autoFixSnippet: `// ✅ Aikido AutoFix Remediation
+// 1. Enforce strict allowlist on allowed host characters:
+const safeHost = req.query.host.replace(/[^a-zA-Z0-9.-]/g, '');
+const cmd = \`echo "Ping check: \${safeHost}"\`;
+exec(cmd, (err, stdout) => { ... });`,
+    autoFixExplanation: 'Aikido SAST flags child_process.exec with untrusted variables as Critical, proposing strict character validation or spawn with argument vectors.',
+    endpoint: '/api/security/test/command-injection',
+    defaultTestValue: '127.0.0.1; id; cat /etc/passwd',
+    testCases: [
+      { label: 'Benign Host', value: '127.0.0.1', isMalicious: false },
+      { label: 'Attack: Command Chaining (; id)', value: '127.0.0.1; id', isMalicious: true },
+      { label: 'Attack: Subshell ($(...))', value: '127.0.0.1 && whoami', isMalicious: true }
+    ]
   }
 ];
 

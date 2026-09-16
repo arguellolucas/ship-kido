@@ -6,6 +6,7 @@ import {
   handleRedosTest,
   handleCryptoRngTest,
   handleOpenRedirectTest,
+  handleCommandInjectionTest,
   DUMMY_AIKIDO_TEST_SECRET
 } from './server/vulnerabilities';
 import {
@@ -164,7 +165,15 @@ async function startServer() {
     }
   });
 
-  // 7. Security Overview / Benchmark Info
+  // 7. OS Command Injection Test (CWE-78) - CRITICAL
+  app.get('/api/security/test/command-injection', async (req, res) => {
+    const host = (req.query.host as string) || '127.0.0.1; whoami';
+    const mode = req.query.mode === 'safe' ? 'safe' : 'vulnerable';
+    const result = await handleCommandInjectionTest(host, mode);
+    res.json(result);
+  });
+
+  // 8. Security Overview / Benchmark Info
   app.get('/api/security/audit-summary', (req, res) => {
     res.json({
       projectName: 'Aikido AutoShip & AutoFix Lab',

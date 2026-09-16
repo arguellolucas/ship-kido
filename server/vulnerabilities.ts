@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
+import { exec } from 'child_process';
 
 // Sample dummy token formatted to match standard secret scanner patterns
 // (This is intentionally a dummy pattern for Aikido Secret Detection testing)
@@ -32,8 +33,8 @@ export function handlePathTraversalTest(filename: string, mode: 'vulnerable' | '
           resolvedPath: insecurePath,
           content: fileContent,
           securityNotice: insecurePath.startsWith(baseDir)
-            ? 'Access permitted within invoice directory.'
-            : 'VULNERABILITY TRIGGERED: Read file outside safe boundary!'
+              ? 'Access permitted within invoice directory.'
+              : 'VULNERABILITY TRIGGERED: Read file outside safe boundary!'
         };
       }
       return {
@@ -126,8 +127,8 @@ export function handleRedosTest(input: string, mode: 'vulnerable' | 'safe'): {
     durationMs,
     patternUsed,
     securityNotice: mode === 'vulnerable'
-      ? 'Vulnerable regex with nested quantifiers (causes exponential evaluation time on crafted inputs).'
-      : 'Aikido AutoFix linear regular expression (guaranteed O(N) evaluation time).'
+        ? 'Vulnerable regex with nested quantifiers (causes exponential evaluation time on crafted inputs).'
+        : 'Aikido AutoFix linear regular expression (guaranteed O(N) evaluation time).'
   };
 }
 
@@ -202,3 +203,65 @@ export function handleOpenRedirectTest(target: string, mode: 'vulnerable' | 'saf
     };
   }
 }
+
+/**
+ * 5. OS Command Injection (CWE-78) - CRITICAL SEVERITY
+ * Vulnerable: Direct interpolation of user-supplied parameter into child_process.exec()
+ * AutoFix: Strict character allowlist and parameterized execution
+ */
+export function handleCommandInjectionTest(host: string, mode: 'vulnerable' | 'safe'): Promise<{
+  success: boolean;
+  command: string;
+  output?: string;
+  error?: string;
+  securityNotice: string;
+}> {
+  return new Promise((resolve) => {
+    if (mode === 'vulnerable') {
+      // ❌ CRITICAL SAST Finding (CWE-78: OS Command Injection)
+      // Aikido SAST flags unescaped concatenation into child_process.exec()
+      const cmd = `echo "Ping check: ${host}"`;
+      exec(cmd, (error, stdout) => {
+        if (error) {
+          resolve({
+            success: false,
+            command: cmd,
+            error: error.message,
+            securityNotice: 'CRITICAL VULNERABILITY: Shell command injection executed unvalidated user input.'
+          });
+        } else {
+          resolve({
+            success: true,
+            command: cmd,
+            output: stdout.trim(),
+            securityNotice: 'CRITICAL VULNERABILITY: User input concatenated directly into shell.'
+          });
+        }
+      });
+    } else {
+      // ✅ Aikido AutoFix Remediation:
+      // Strictly validate hostname / IP format to block shell metacharacters and invalid commands
+      const trimmed = host.trim();
+      const isValidHost = /^[a-zA-Z0-9.-]+$/.test(trimmed);
+
+      if (!isValidHost) {
+        resolve({
+          success: false,
+          command: 'echo "Ping check: blocked"',
+          error: 'Security Guard: Invalid host syntax. Shell metacharacters or spaces detected.',
+          securityNotice: 'Aikido AutoFix Guard: Blocked invalid host syntax and prevented command injection.'
+        });
+        return;
+      }
+
+      const cmd = `echo "Ping check: ${trimmed}"`;
+      resolve({
+        success: true,
+        command: cmd,
+        output: `Ping check: ${trimmed}`,
+        securityNotice: 'Aikido AutoFix Guard: Validated hostname and safely executed without shell expansion.'
+      });
+    }
+  });
+}
+

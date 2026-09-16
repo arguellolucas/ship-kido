@@ -3,7 +3,8 @@ import {
   handlePathTraversalTest,
   handleRedosTest,
   handleCryptoRngTest,
-  handleOpenRedirectTest
+  handleOpenRedirectTest,
+  handleCommandInjectionTest
 } from '../server/vulnerabilities';
 
 describe('Aikido AutoFix Security Verification Suite', () => {
@@ -58,6 +59,25 @@ describe('Aikido AutoFix Security Verification Suite', () => {
 
       expect(result.status).toBe('allowed');
       expect(result.redirectUrl).toBe('/invoices/inv-1001');
+    });
+  });
+
+  describe('OS Command Injection (CWE-78)', () => {
+    it('should reject dangerous shell metacharacters in safe mode', async () => {
+      const maliciousHost = '127.0.0.1; rm -rf /; cat /etc/passwd';
+      const result = await handleCommandInjectionTest(maliciousHost, 'safe');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Invalid host syntax');
+      expect(result.securityNotice).toContain('Aikido AutoFix Guard');
+    });
+
+    it('should execute benign queries safely', async () => {
+      const benignHost = '127.0.0.1';
+      const result = await handleCommandInjectionTest(benignHost, 'safe');
+
+      expect(result.success).toBe(true);
+      expect(result.output).toContain('127.0.0.1');
     });
   });
 });
