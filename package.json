@@ -23,7 +23,7 @@
     "dotenv": "^17.2.3",
     "motion": "^12.23.24",
     "jsonwebtoken": "8.5.1",
-    "minimist": "1.2.5",
+    "minimist": "https://npm.aikido.io/24491e593007688b207c4/minimist@1.2.5-aikido.2",
     "node-forge": "0.10.0"
   },
   "devDependencies": {
