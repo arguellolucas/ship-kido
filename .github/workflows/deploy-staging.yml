@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: staging
-      url: ${{ steps.deploy_step.outputs.url || steps.webhook_deploy.outputs.url || 'https://staging.ship-kido.ai' }}
+      url: ${{ steps.deploy_step.outputs.url || steps.webhook_deploy.outputs.url || 'https://ship-kido-staging.onrender.com/' }}
 
     steps:
       - name: Checkout code

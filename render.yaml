@@ -1,0 +1,22 @@
+# Render.com Infrastructure as Code (Blueprint)
+# Documentation: https://render.com/docs/blueprint-spec
+# Preview Environments: https://render.com/docs/preview-environments
+
+previews:
+  generation: automatic # Spin up a preview environment for every Pull Request
+  expireAfterDays: 1    # Automatically clean up idle PR previews after 1 days
+
+services:
+  - type: web
+    name: ship-kido
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
