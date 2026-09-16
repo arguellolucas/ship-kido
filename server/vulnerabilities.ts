@@ -23,7 +23,16 @@ export function handlePathTraversalTest(filename: string, mode: 'vulnerable' | '
 
   if (mode === 'vulnerable') {
     // Flagged by Aikido SAST as Potential Path Traversal:
-    const insecurePath = path.join(baseDir, filename);
+    const insecurePath = path.resolve(baseDir, filename);
+    const relativePath = path.relative(baseDir, insecurePath);
+    if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+      return {
+        success: false,
+        resolvedPath: insecurePath,
+        error: 'Access denied',
+        securityNotice: 'Invalid path'
+      };
+    }
     try {
       if (fs.existsSync(insecurePath)) {
         const fileContent = fs.readFileSync(insecurePath, 'utf8');
